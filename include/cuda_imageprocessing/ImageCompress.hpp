@@ -53,6 +53,7 @@ public:
             cudaFree(nvImage.channel[0]);
         }
 
+        // TODO Set data copy in Run func
         {   
             dstMsg.header.frame_id = srcMsg.header.frame_id;
             dstMsg.format = m_dstEncording;
@@ -146,6 +147,7 @@ protected:
         if(CheckCUDA(cudaStreamSynchronize(stream)) != 0);
             return false;
 
+        // TODO Set data copy in Processing func
 		// compImage.data  = std::move(jpeg);
 		*dst = &jpeg[0];
     };
