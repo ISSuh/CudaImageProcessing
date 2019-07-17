@@ -55,6 +55,7 @@ public:
         }
 
         {
+            dstMsg.header.frame_id = srcMsg.header.frame_id;
             dstMsg.width = m_dstW;
             dstMsg.height = m_dstH;
             dstMsg.step = m_dstStep;
@@ -146,7 +147,7 @@ protected:
 
     bool Processing(void **src, void **dst){
         if (m_srcEncording == "rgb8" || m_srcEncording == "bgr8"){
-            if (ips::CheckNPP(nppiColorToGray_8u_C3C1R((Npp8u *)*src, m_srcStep,
+            if (CheckNPP(nppiColorToGray_8u_C3C1R((Npp8u *)*src, m_srcStep,
                                                        (Npp8u *)*dst, m_dstStep,
                                                        m_size, &m_coeffs[0])) != 0)
                 return false;
@@ -154,7 +155,7 @@ protected:
             return true;
         }
         else if (m_srcEncording == "rgb16" || m_srcEncording == "bgr16"){
-            if (ips::CheckNPP(nppiColorToGray_16u_C4C1R((Npp16u *)*src, m_srcStep,
+            if (CheckNPP(nppiColorToGray_16u_C4C1R((Npp16u *)*src, m_srcStep,
                                                         (Npp16u *)*dst, m_dstStep,
                                                         m_size, &m_coeffs[0])) != 0)
                 return false;
@@ -162,7 +163,7 @@ protected:
             return true;
         }
         else if (m_srcEncording == "rgba8" || m_srcEncording == "bgra8"){
-            if (ips::CheckNPP(nppiColorToGray_8u_C3C1R((Npp8u *)*src, m_srcStep,
+            if (CheckNPP(nppiColorToGray_8u_C3C1R((Npp8u *)*src, m_srcStep,
                                                        (Npp8u *)*dst, m_dstStep,
                                                        m_size, &m_coeffs[0])) != 0)
                 return false;
@@ -170,7 +171,7 @@ protected:
             return true;
         }
         else if (m_srcEncording == "rgba16" || m_srcEncording == "bgra16"){
-            if (ips::CheckNPP(nppiColorToGray_16u_C3C1R((Npp16u *)*src, m_srcStep,
+            if (CheckNPP(nppiColorToGray_16u_C3C1R((Npp16u *)*src, m_srcStep,
                                                         (Npp16u *)*dst, m_dstStep,
                                                         m_size, &m_coeffs[0])) != 0)
                 return false;
@@ -181,16 +182,7 @@ protected:
             return false;
     };
 
-    int m_srcW, m_srcH;
-    int m_dstW, m_dstH;
-    int m_srcStep, m_dstStep;
-    
-    std::string m_srcEncording;
-    std::string m_dstEncording;
-
-    uint32_t m_srcChannelNum;
-    uint32_t m_dstChannelNum;
-
+private:
     NppiSize m_size;
     std::vector<Npp32f> m_coeffs;
     

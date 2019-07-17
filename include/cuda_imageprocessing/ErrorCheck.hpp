@@ -1,9 +1,11 @@
-#ifndef ERROR_CHECK_H
-#define ERROR_CHECK_H
+#ifndef ERROR_CHECK_HPP
+#define ERROR_CHECK_HPP
 
+// ROS
 #include <ros/ros.h>
 #include <ros/console.h>
 
+// CUDA
 #include <npp.h>
 #include <nvJPEG/nvjpeg.h>
 

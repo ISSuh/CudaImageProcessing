@@ -5,6 +5,7 @@
 
 #include <cuda_imageprocessing/ImageResize.hpp>
 #include <cuda_imageprocessing/GrayConverter.hpp>
+#include <cuda_imageprocessing/ImageCompress.hpp>
 
 class IP_Sample{
 public:
@@ -39,20 +40,25 @@ public:
 			pubTopic += "/gray";
 		}
 
+		if(runCompress){
+			compressor = std::unique_ptr<ips::ImageCompress>(new ips::ImageCompress(50,0));
+			pubTopic = subTopic + "/compressed";
+		}
+
 		sub_ = n_->subscribe(subTopic, 10, &IP_Sample::callback, this);
-		pub_ = n_->advertise<sensor_msgs::Image>(pubTopic, 1);
+
+		if(runCompress)
+			pub_ = n_->advertise<sensor_msgs::CompressedImage>(pubTopic, 1);
+		else
+			pub_ = n_->advertise<sensor_msgs::Image>(pubTopic, 1);
 
 		ROS_INFO("CUDA Image Processing RUN");
 	}
 
 	void callback(const sensor_msgs::Image::ConstPtr &msg){
-		sensor_msgs::Image resiezedImage;
-		sensor_msgs::Image grayImage;
-		sensor_msgs::Image convertedImage;
-
 		// ips::ImageResize
 		// param : Subscribed Image message
-		// param : Resize & Publish Image message
+		// param : destination resized image
 		if(runResize){
 			if(!resizer->Run(*msg, resiezedImage))
 				return;
@@ -62,8 +68,7 @@ public:
 		
 		// ips::GrayConverter
 		// param : Subscribed Image message
-		// param : togray & Publish Image message
-		// if(!toGray->Run(msg, convertedImage))
+		// param : destination converted image
 		if(runTogray){
 			if(!toGray->Run(resiezedImage, grayImage))
 				return;
@@ -72,13 +77,16 @@ public:
 			grayImage = std::move(resiezedImage);
 		
 		// ips::ImageCompress
+		// param : Subscribed Image message
+		// param : destination converted image
 		if(runCompress){
-			return;
+			if(!compressor->Run(grayImage, convertedCompImage))
+				return;
 		}
 		else
 			convertedImage = std::move(grayImage);
 		
-		pub_.publish(convertedImage);
+		runCompress ? pub_.publish(convertedCompImage) : pub_.publish(convertedImage);
 	}
 
 private:
@@ -88,6 +96,12 @@ private:
 	
     std::unique_ptr<ips::ImageResize> resizer;
 	std::unique_ptr<ips::GrayConverter> toGray;
+	std::unique_ptr<ips::ImageCompress> compressor;
+
+	sensor_msgs::Image resiezedImage;
+	sensor_msgs::Image grayImage;
+	sensor_msgs::Image convertedImage;
+	sensor_msgs::CompressedImage convertedCompImage;
 
 	std::string subTopic;
 	std::string pubTopic;
