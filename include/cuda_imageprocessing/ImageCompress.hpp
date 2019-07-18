@@ -106,8 +106,7 @@ protected:
         return true;
     };
 
-    virtual bool m_CudaAllocation(void **src, void **dst)
-    {
+    virtual bool m_CudaAllocation(void **src, void **dst) {
         if (CheckCUDA(
             cudaStreamCreate(&stream),
             "cudaStreamCreate") != 0)
@@ -146,8 +145,7 @@ protected:
         return true;
     };
 
-    virtual bool m_Processing(void **src, void **dst)
-    {
+    virtual bool m_Processing(void **src, void **dst) {
         if (ChecknvJPEG(
             nvjpegEncodeImage(handle, encState, encParams,
                                 &nvImage, inputFormat,
