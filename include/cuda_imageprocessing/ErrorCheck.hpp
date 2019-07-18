@@ -11,16 +11,16 @@
 
 namespace ips{
 
-inline cudaError_t CheckCUDA(cudaError_t status){
+inline cudaError_t CheckCUDA(cudaError_t status, const std::string func){
 	if (status != cudaSuccess)
-            ROS_ERROR("[CUDA ERROR] %d", status);
+            ROS_ERROR("[CUDA ERROR][%s] %d", func.c_str(), status);
         
         return status;
 }
 
-inline NppStatus CheckNPP(NppStatus status){
+inline NppStatus CheckNPP(NppStatus status, const std::string func){
         if (status != NPP_NO_ERROR)
-             ROS_ERROR("[NPP ERROR] %d", status);
+             ROS_ERROR("[NPP ERROR][%s] %d", func.c_str(), status);
         
         return status;
 }

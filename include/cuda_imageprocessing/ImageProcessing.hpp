@@ -9,12 +9,12 @@ namespace ips {
 class ImageProcessing{
 public: 
     virtual ~ImageProcessing() { }
-    bool Run();
+    bool m_Run();
 
 protected:
-    virtual bool InitialMember(const sensor_msgs::Image &srcMsg) = 0;
-    virtual bool CudaAllocation(void **src, void **dst) = 0;
-    virtual bool Processing(void **src, void **dst) = 0;
+    virtual bool m_InitialMember(const sensor_msgs::Image &srcMsg) = 0;
+    virtual bool m_CudaAllocation(void **src, void **dst) = 0;
+    virtual bool m_Processing(void **src, void **dst) = 0;
 
     int m_srcW, m_srcH;
     int m_dstW, m_dstH;

@@ -30,8 +30,8 @@ public:
         m_dstROI = {0, 0, m_dstW, m_dstH};
     }
 
-    bool Run(const sensor_msgs::Image &srcMsg, sensor_msgs::Image &dstMsg) {
-        if (!InitialMember(srcMsg))
+    bool m_Run(const sensor_msgs::Image &srcMsg, sensor_msgs::Image &dstMsg) {
+        if (!m_InitialMember(srcMsg))
             return false;
 
         std::vector<uint8_t> resizedImage(m_dstStep * m_dstH, 0);
@@ -39,17 +39,21 @@ public:
         {
             void *srcImage = nullptr, *dstImage = nullptr;
 
-            if (!CudaAllocation(&srcImage, &dstImage))
-                return false;
+            if (!m_CudaAllocation(&srcImage, &dstImage)) return false;
 
-            if (CheckCUDA(cudaMemcpy2D(srcImage, m_srcStep, &srcMsg.data[0], m_srcStep,   m_srcW * m_srcChannelNum, m_srcH, cudaMemcpyHostToDevice)) != 0)
-                return false;
+            if (CheckCUDA(
+                cudaMemcpy2D(srcImage, m_srcStep, 
+                             &srcMsg.data[0], m_srcStep, 
+                             m_srcW * m_srcChannelNum, m_srcH, cudaMemcpyHostToDevice), 
+                "cudaMemcpy2D") != 0) return false;
 
-            if (!Processing(&srcImage, &dstImage))
-                return false;
+            if (!m_Processing(&srcImage, &dstImage)) return false;
 
-            if (CheckCUDA(cudaMemcpy2D(&resizedImage[0], m_dstW * m_srcChannelNum, dstImage,   m_dstStep, m_dstW * m_srcChannelNum, m_dstH, cudaMemcpyDeviceToHost)) != 0)
-                return false;
+            if (CheckCUDA(
+                cudaMemcpy2D(&resizedImage[0], m_dstW * m_srcChannelNum, 
+                             dstImage, m_dstStep, 
+                             m_dstW * m_srcChannelNum, m_dstH, cudaMemcpyDeviceToHost),
+                "cudaMemcpy2D") != 0) return false;
 
             nppiFree(srcImage);
             nppiFree(dstImage);
@@ -70,9 +74,9 @@ public:
     };
 
 protected:
-    virtual bool InitialMember(const sensor_msgs::Image &srcMsg) {
-        if ((srcMsg.width <= 0) || (srcMsg.height <= 0)){
-            ROS_ERROR("Unvalid image size. check your image.");
+    virtual bool m_InitialMember(const sensor_msgs::Image &srcMsg) {
+        if ((srcMsg.width < 0) || (srcMsg.height < 0)){
+            ROS_ERROR("[ImageResize] Unvalid image size. check your image.");
             return false;
         }
 
@@ -87,7 +91,7 @@ protected:
             srcMsg.encoding != "mono8"  &&
             srcMsg.encoding != "mono16"){
 
-            ROS_ERROR("Invalid Encording value! Not supportted Encording Type.");
+            ROS_ERROR("[ImageResize] %s is invalid encording format! Not supportted encording type.", srcMsg.encoding.c_str());
             return false;
         }
 
@@ -106,7 +110,7 @@ protected:
         return true;
     };
 
-    virtual bool CudaAllocation(void **src, void **dst) {
+    virtual bool m_CudaAllocation(void **src, void **dst) {
         int srcStep, dstStep;
 
         if (m_srcEncording == "mono8"){
@@ -143,52 +147,52 @@ protected:
             return false;
     };
 
-    virtual bool Processing(void **src, void **dst) {
-         if (m_srcEncording == "mono8"){
-        if (CheckNPP(nppiResize_8u_C1R((Npp8u *)*src, m_srcStep, m_srcSize, m_srcROI,
-                                            (Npp8u *)*dst, m_dstStep, m_dstSize, m_dstROI,
-                                            NPPI_INTER_LINEAR)) != 0)
-            return false;
+    virtual bool m_Processing(void **src, void **dst) {
+        if (m_srcEncording == "mono8"){
+            if (CheckNPP(
+                nppiResize_8u_C1R((Npp8u *)*src, m_srcStep, m_srcSize, m_srcROI,
+                                  (Npp8u *)*dst, m_dstStep, m_dstSize, m_dstROI, NPPI_INTER_LINEAR), 
+                "nppiResize_8u_C1R") != 0) return false;
 
-        return true;
+            return true;
         }
         else if (m_srcEncording == "mono16"){
-            if (CheckNPP(nppiResize_16u_C1R((Npp16u *)*src, m_srcStep, m_srcSize, m_srcROI,
-                                                 (Npp16u *)*dst, m_dstStep, m_dstSize, m_dstROI,
-                                                 NPPI_INTER_LINEAR)) != 0)
-                return false;
+            if (CheckNPP(
+                nppiResize_16u_C1R((Npp16u *)*src, m_srcStep, m_srcSize, m_srcROI,
+                                   (Npp16u *)*dst, m_dstStep, m_dstSize, m_dstROI, NPPI_INTER_LINEAR), 
+                "nppiResize_16u_C1R") != 0) return false;
 
             return true;
         }
         else if (m_srcEncording == "rgb8" || m_srcEncording == "bgr8"){
-            if (CheckNPP(nppiResize_8u_C3R((Npp8u *)*src, m_srcStep, m_srcSize, m_srcROI,
-                                                (Npp8u *)*dst, m_dstStep, m_dstSize, m_dstROI,
-                                                NPPI_INTER_LINEAR)) != 0)
-                return false;
+            if (CheckNPP(
+                nppiResize_8u_C3R((Npp8u *)*src, m_srcStep, m_srcSize, m_srcROI,
+                                  (Npp8u *)*dst, m_dstStep, m_dstSize, m_dstROI, NPPI_INTER_LINEAR),
+                "nppiResize_8u_C3R") != 0) return false;
 
             return true;
         }
         else if (m_srcEncording == "rgb16" || m_srcEncording == "bgr16"){
-            if (CheckNPP(nppiResize_16u_C3R((Npp16u *)*src, m_srcStep, m_srcSize, m_srcROI,
-                                                 (Npp16u *)*dst, m_dstStep, m_dstSize, m_dstROI,
-                                                 NPPI_INTER_LINEAR)) != 0)
-                return false;
+            if (CheckNPP(
+                nppiResize_16u_C3R((Npp16u *)*src, m_srcStep, m_srcSize, m_srcROI,
+                                   (Npp16u *)*dst, m_dstStep, m_dstSize, m_dstROI, NPPI_INTER_LINEAR),
+                "nppiResize_16u_C3R") != 0) return false;
 
             return true;
         }
         else if (m_srcEncording == "rgba8" || m_srcEncording == "bgra8"){
-            if (CheckNPP(nppiResize_8u_C4R((Npp8u *)*src, m_srcStep, m_srcSize, m_srcROI,
-                                                (Npp8u *)*dst, m_dstStep, m_dstSize, m_dstROI,
-                                                NPPI_INTER_LINEAR)) != 0)
-                return false;
+            if (CheckNPP(
+                nppiResize_8u_C4R((Npp8u *)*src, m_srcStep, m_srcSize, m_srcROI,
+                                  (Npp8u *)*dst, m_dstStep, m_dstSize, m_dstROI, NPPI_INTER_LINEAR),
+                "nppiResize_8u_C4R") != 0) return false;
 
             return true;
         }
         else if (m_srcEncording == "rgba16" || m_srcEncording == "bgra16"){
-            if (CheckNPP(nppiResize_16u_C4R((Npp16u *)*src, m_srcStep, m_srcSize, m_srcROI,
-                                                 (Npp16u *)*dst, m_dstStep, m_dstSize, m_dstROI,
-                                                 NPPI_INTER_LINEAR)) != 0)
-                return false;
+            if (CheckNPP(
+                nppiResize_16u_C4R((Npp16u *)*src, m_srcStep, m_srcSize, m_srcROI,
+                                   (Npp16u *)*dst, m_dstStep, m_dstSize, m_dstROI, NPPI_INTER_LINEAR), 
+                "nppiResize_16u_C4R") != 0) return false;
 
             return true;
         }

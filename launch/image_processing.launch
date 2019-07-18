@@ -1,18 +1,26 @@
 <launch>
 
   <arg name="subTopic" default="/image_raw"/>  
-  <arg name="resize" default="true"/>
-  <arg name="togray" default="false"/>
-  <arg name="compress" default="true"/>
-  <arg name="dstwidth" default="300"/>
-  <arg name="dstHeight" default="150"/>
+
+  <arg name="runResize" default="true"/>
+  <arg name="dstwidth" default="600"/>
+  <arg name="dstHeight" default="300"/>
+
+  <arg name="runTogray" default="false"/>
+
+  <arg name="runCompress" default="true"/>
+  <arg name="jpegQuality" default="70"/>
+  <arg name="jpegHuffmanOptimize" default="0"/>
+
 
   <node pkg="cuda_imageprocessing" type="image_processing" name="image_processing" output='screen'/>
         <param name="subTopic"              type = "str"    value="$(arg subTopic)"/>
-        <param name="resize"                type = "bool"   value="$(arg resize)"/>
-        <param name="togray"                type = "bool"   value="$(arg togray)"/>
-        <param name="compress"              type = "bool"   value="$(arg compress)"/>
+        <param name="resize"                type = "bool"   value="$(arg runResize)"/>
+        <param name="togray"                type = "bool"   value="$(arg runTogray)"/>
+        <param name="compress"              type = "bool"   value="$(arg runCompress)"/>
         <param name="dstWidth"              type = "int"    value="$(arg dstwidth)"/>
         <param name="dstHeight"             type = "int"    value="$(arg dstHeight)"/>
+        <param name="jpegQuality"           type = "int"    value="$(arg jpegQuality)"/>
+        <param name="jpegHuffmanOptimize"   type = "int"    value="$(arg jpegHuffmanOptimize)"/>
 
 </launch>

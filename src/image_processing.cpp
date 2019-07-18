@@ -7,26 +7,22 @@
 #include <cuda_imageprocessing/GrayConverter.hpp>
 #include <cuda_imageprocessing/ImageCompress.hpp>
 
-class IP_Sample{
+class ImageProcessingSample{
 public:
-	IP_Sample(){
-		n_ = std::unique_ptr<ros::NodeHandle>(new ros::NodeHandle());
+	ImageProcessingSample(){
+		n = std::unique_ptr<ros::NodeHandle>(new ros::NodeHandle());
 
-		n_->getParam("subTopic", subTopic);
-		n_->getParam("resize", runResize);
-    	n_->getParam("togray", runTogray);
-    	n_->getParam("compress", runCompress);
-    	n_->getParam("dstWidth", dstWidth);
-    	n_->getParam("dstHeight", dstHeight);
+		n->getParam("subTopic", subTopic);
+		n->getParam("resize", runResize);
+    	n->getParam("togray", runTogray);
+    	n->getParam("compress", runCompress);
+    	n->getParam("dstWidth", dstWidth);
+    	n->getParam("dstHeight", dstHeight);
+		n->getParam("jpegQuality", jpegQuality);
+    	n->getParam("jpegHuffmanOptimize", jpegHuffmanOptimize);
 
 		pubTopic = subTopic + "/";
-
-		//TEST
-		// runResize = true;
-		// runTogray = true;
-		// dstWidth = 600;
-		// dstHeight = 300;
-
+		
 		// ips::ImageResizer Construct
 		// param : resize image width
 		// param : resize image height
@@ -41,53 +37,55 @@ public:
 		}
 
 		if(runCompress){
-			compressor = std::unique_ptr<ips::ImageCompress>(new ips::ImageCompress(50,0));
-			pubTopic = subTopic + "/compressed";
+			compressor = std::unique_ptr<ips::ImageCompress>(new ips::ImageCompress(jpegQuality,jpegHuffmanOptimize));
+			pubTopic += "/compressed";
 		}
 
-		sub_ = n_->subscribe(subTopic, 10, &IP_Sample::callback, this);
+		sub = n->subscribe(subTopic, 10, &ImageProcessingSample::callback, this);
 
 		if(runCompress)
-			pub_ = n_->advertise<sensor_msgs::CompressedImage>(pubTopic, 1);
+			pub = n->advertise<sensor_msgs::CompressedImage>(pubTopic, 1);
 		else
-			pub_ = n_->advertise<sensor_msgs::Image>(pubTopic, 1);
+			pub = n->advertise<sensor_msgs::Image>(pubTopic, 1);
 
 		ROS_INFO("CUDA Image Processing RUN");
 	}
 
 	void callback(const sensor_msgs::Image::ConstPtr &msg){
-		std::cout << "-------------------------------" << '\n';
 		// ips::ImageResize
 		// param : Subscribed Image message
 		// param : destination resized image
-		if(runResize)
-			if(!resizer->Run(*msg, resiezedImage)) return;
+		if(runResize){
+			if(!resizer->m_Run(*msg, resiezedImage)) return;
+		}
 		else
-			resiezedImage = std::move(*msg);
+			resiezedImage = *msg;
 		
 		// ips::GrayConverter
 		// param : Subscribed Image message
 		// param : destination converted image
-		if(runTogray)
-			if(!toGray->Run(resiezedImage, grayImage)) return;
+		if(runTogray){
+			if(!toGray->m_Run(resiezedImage, grayImage)) return;
+		}
 		else
-			grayImage = std::move(resiezedImage);
-		
+			grayImage = resiezedImage;
+
 		// ips::ImageCompress
 		// param : Subscribed Image message
 		// param : destination converted image
-		if(runCompress)
-			if(!compressor->Run(grayImage, convertedCompImage)) return;
+		if(runCompress){
+			if(!compressor->m_Run(grayImage, convertedCompImage)) return;
+		}
 		else
-			convertedImage = std::move(grayImage);
+			convertedImage = grayImage;
 
-		runCompress ? pub_.publish(convertedCompImage) : pub_.publish(convertedImage);
+		runCompress ? pub.publish(convertedCompImage) : pub.publish(convertedImage);
 	}
 
 private:
-	std::unique_ptr<ros::NodeHandle> n_;
-	ros::Publisher pub_;
-	ros::Subscriber sub_;
+	std::unique_ptr<ros::NodeHandle> n;
+	ros::Publisher pub;
+	ros::Subscriber sub;
 	
     std::unique_ptr<ips::ImageResize> resizer;
 	std::unique_ptr<ips::GrayConverter> toGray;
@@ -98,14 +96,16 @@ private:
 	sensor_msgs::Image convertedImage;
 	sensor_msgs::CompressedImage convertedCompImage;
 
+	// ROS params
 	std::string subTopic;
 	std::string pubTopic;
 	bool runResize;
 	bool runTogray;
 	bool runCompress;
-
 	int dstWidth;
 	int dstHeight;
+	int jpegQuality;
+	int jpegHuffmanOptimize;
 
 	bool isMono8;
 };
@@ -114,7 +114,7 @@ private:
 int main(int argc, char **argv){
 	ros::init(argc, argv, "ImageProvessing");	
 
-	IP_Sample sample;
+	ImageProcessingSample sample;
 
 	ros::spin();
 }
