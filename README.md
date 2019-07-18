@@ -1,22 +1,25 @@
 # CudaImageProcessing
 
-## ROS based image resize & compressed using CUDA(NPP)
+## ROS based image resize & compressed using CUDA(using NPP, nvJPEG)
 
 
 ### ***Development Enviroments***
 
 >  - Ubuntu 16.04 LTS
->  - MX150 (Driver v410.78)
 >  - ROS Kinetic 
+>  - MX150 (Driver v410.78)
 >  - CUDA v9.0
 >  - NPP v9.0.225 
+>  - nvJPEG  v0.1.5
 
 ### ***Support***
 
 > Until now, only supported image resize. 
 > - Image Resize /
 > -- Only Supported [RGB8, RGBA8, RGB16, RGBA16, BGR8, BGRA8, BGR16, BGRA16, MONO8, MONO16]  
+> - Image Compressed /
+> -- Only Supported [RGB8, BGR8]  
 
 ### ***Caution*** 
 
->> I tested Only that enviroments. 
+>> I tested Only my development enviroments. 
