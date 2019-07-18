@@ -1,7 +1,9 @@
 # CudaImageProcessing
 
-## ROS based image resize & compressed using CUDA(NPP, nvJPEG)
+## ROS based image resize & compressed & togray scale using CUDA(NPP, nvJPEG)
+
 ----------------------------
+
 ### ***Development Enviroments***
 
 >  - Ubuntu 16.04 LTS
@@ -11,13 +13,19 @@
 >  - NPP v9.0.225
 >  - nvJPEG  v0.1.5
 
-### ***Support***
+### ***Supported color channel***
 
 > - Image Resize\
-> -- Only Supported [RGB8, RGBA8, RGB16, RGBA16, BGR8, BGRA8, BGR16, BGRA16, MONO8, MONO16]  
+> -- Only Supported [RGB8, RGBA8, RGB16, RGBA16, BGR8, BGRA8, BGR16, BGRA16, MONO8, MONO16]
+> - Image convert to gray scale\
+> -- Only Supported [RGB8, RGBA8, RGB16, RGBA16, BGR8, BGRA8, BGR16, BGRA16]  
 > - Image Compressed\
 > -- Only Supported [RGB8, BGR8]  
 
-### ***Caution*** 
+### ***Caution!!***
 
->> I tested Only my development enviroments. 
+> I tested Only my development enviroments.
+
+### History
+
+> update image compressed ("sensor_msgs/Image" to "sensor_msgs/CompressedImage")
