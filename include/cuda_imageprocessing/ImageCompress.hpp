@@ -32,8 +32,6 @@ public:
             return false;
 
         {
-            void *dstImage = nullptr;
-
             if (!CudaAllocation(NULL, NULL))
                 return false;
 
@@ -43,7 +41,7 @@ public:
     		if(CheckCUDA(cudaMemcpy(nvImage.channel[0], &srcMsg.data[0], msgImageLen, cudaMemcpyHostToDevice)) != 0)
                 return false;
 
-            if (!Processing(NULL, &dstImage))
+            if (!Processing(NULL, NULL))
                 return false;
 
             nvjpegEncoderParamsDestroy(encParams);
@@ -57,9 +55,10 @@ public:
         {   
             dstMsg.header.frame_id = srcMsg.header.frame_id;
             dstMsg.format = m_dstEncording;
-            // dstMsg.data = std::move(dstImage);
+            dstMsg.data = std::move(jpeg);
         }
 
+        return true;
     };
 
 protected:
@@ -105,67 +104,58 @@ protected:
     };
     
     virtual bool CudaAllocation(void **src, void **dst){
-		nvjpegDevAllocator_t dev_allocator = {&ImageCompress::DevMalloc, &ImageCompress::DevFree};
-
         if(CheckCUDA(cudaStreamCreate(&stream)) != 0)
             return false;
 
-		if(ChecknvJPEG(nvjpegCreateSimple(&handle)) != 0);
+		if(ChecknvJPEG(nvjpegCreateSimple(&handle), "nvjpegCreateSimple") != 0)
             return false;
 
-		if(ChecknvJPEG(nvjpegEncoderStateCreate(handle, &encState, stream)) !=0)
+		if(ChecknvJPEG(nvjpegEncoderStateCreate(handle, &encState, stream), "nvjpegEncoderStateCreate") != 0)
             return false;
 
-		if(ChecknvJPEG(nvjpegEncoderParamsCreate(handle, &encParams, stream)) !=0)
+		if(ChecknvJPEG(nvjpegEncoderParamsCreate(handle, &encParams, stream), "nvjpegEncoderParamsCreate") != 0)
             return false;
 
-		if(ChecknvJPEG(nvjpegEncoderParamsSetQuality(encParams, quality, stream)) !=0)
+		if(ChecknvJPEG(nvjpegEncoderParamsSetQuality(encParams, quality, stream), "nvjpegEncoderParamsSetQuality") != 0)
             return false;
 
-		if(ChecknvJPEG(nvjpegEncoderParamsSetOptimizedHuffman(encParams, huffmanOptimized, stream)) !=0)
+		if(ChecknvJPEG(nvjpegEncoderParamsSetOptimizedHuffman(encParams, huffmanOptimized, stream), "nvjpegEncoderParamsSetOptimizedHuffman") != 0)
             return false;
 
-	    if(ChecknvJPEG(nvjpegEncoderParamsSetSamplingFactors(encParams, NVJPEG_CSS_444, stream)) !=0)
+	    if(ChecknvJPEG(nvjpegEncoderParamsSetSamplingFactors(encParams, NVJPEG_CSS_444, stream), "nvjpegEncoderParamsSetSamplingFactors") != 0)
             return false;
+        
+        return true;
     };
 
     virtual bool Processing(void **src, void **dst){
-		std::vector<uint8_t> jpeg(buffLen, 0);
-
-        if(ChecknvJPEG(nvjpegEncodeImage(handle, encState, encParams, &nvImage, inputFormat, m_srcW, m_srcH, stream)) != 0);
+        if(ChecknvJPEG(nvjpegEncodeImage(handle, encState, encParams, &nvImage, inputFormat, m_srcW, m_srcH, stream), "nvjpegEncodeImage") != 0)
 			return false;
 
-		if(ChecknvJPEG(nvjpegEncodeRetrieveBitstream(handle, encState, NULL, &buffLen, stream)) != 0)
+		if(ChecknvJPEG(nvjpegEncodeRetrieveBitstream(handle, encState, NULL, &buffLen, stream), "nvjpegEncodeRetrieveBitstream") != 0)
             return false;
 
 		if(CheckCUDA(cudaStreamSynchronize(stream)) != 0)
             return false;
 
-		if(ChecknvJPEG(nvjpegEncodeRetrieveBitstream(handle, encState, jpeg.data(), &buffLen, 0)) != 0)
+        jpeg.resize(buffLen);
+
+		if(ChecknvJPEG(nvjpegEncodeRetrieveBitstream(handle, encState, jpeg.data(), &buffLen, 0), "nvjpegEncodeRetrieveBitstream") != 0)
             return false;
 		
-        if(CheckCUDA(cudaStreamSynchronize(stream)) != 0);
+        if(CheckCUDA(cudaStreamSynchronize(stream)) != 0)
             return false;
 
-        // TODO Set data copy in Processing func
-		// compImage.data  = std::move(jpeg);
-		*dst = &jpeg[0];
+        return true;
     };
 
 private:
-    static int DevMalloc(void** p, size_t s){
-        return (int)cudaMalloc(p, s);
-    }
-
-    static int DevFree(void* p){
-        return (int)cudaFree(p);
-    }
-
     nvjpegHandle_t handle; 
 	nvjpegEncoderState_t encState;
     nvjpegEncoderParams_t encParams;
     cudaStream_t stream;
 	nvjpegImage_t nvImage;
+    std::vector<uint8_t> jpeg;
 
     size_t msgImageLen;
 	size_t buffLen;

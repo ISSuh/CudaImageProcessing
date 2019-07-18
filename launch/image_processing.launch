@@ -2,8 +2,8 @@
 
   <arg name="subTopic" default="/image_raw"/>  
   <arg name="resize" default="true"/>
-  <arg name="togray" default="true"/>
-  <arg name="compress" default="false"/>
+  <arg name="togray" default="false"/>
+  <arg name="compress" default="true"/>
   <arg name="dstwidth" default="300"/>
   <arg name="dstHeight" default="150"/>
 

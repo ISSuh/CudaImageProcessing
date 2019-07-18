@@ -56,36 +56,31 @@ public:
 	}
 
 	void callback(const sensor_msgs::Image::ConstPtr &msg){
+		std::cout << "-------------------------------" << '\n';
 		// ips::ImageResize
 		// param : Subscribed Image message
 		// param : destination resized image
-		if(runResize){
-			if(!resizer->Run(*msg, resiezedImage))
-				return;
-		}
+		if(runResize)
+			if(!resizer->Run(*msg, resiezedImage)) return;
 		else
 			resiezedImage = std::move(*msg);
 		
 		// ips::GrayConverter
 		// param : Subscribed Image message
 		// param : destination converted image
-		if(runTogray){
-			if(!toGray->Run(resiezedImage, grayImage))
-				return;
-		}
+		if(runTogray)
+			if(!toGray->Run(resiezedImage, grayImage)) return;
 		else
 			grayImage = std::move(resiezedImage);
 		
 		// ips::ImageCompress
 		// param : Subscribed Image message
 		// param : destination converted image
-		if(runCompress){
-			if(!compressor->Run(grayImage, convertedCompImage))
-				return;
-		}
+		if(runCompress)
+			if(!compressor->Run(grayImage, convertedCompImage)) return;
 		else
 			convertedImage = std::move(grayImage);
-		
+
 		runCompress ? pub_.publish(convertedCompImage) : pub_.publish(convertedImage);
 	}
 

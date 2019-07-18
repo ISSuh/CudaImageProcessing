@@ -25,9 +25,9 @@ inline NppStatus CheckNPP(NppStatus status){
         return status;
 }
 
-inline nvjpegStatus_t ChecknvJPEG(nvjpegStatus_t status){
+inline nvjpegStatus_t ChecknvJPEG(nvjpegStatus_t status, const std::string func){
 	if (status != NVJPEG_STATUS_SUCCESS)
-            ROS_ERROR("[CUDA ERROR] %d", status);
+            ROS_ERROR("[nvJPEG ERROR][%s] %d", func.c_str(), status);
         
         return status;
 }
