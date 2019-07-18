@@ -2,13 +2,12 @@
 #define IMAGE_PROCESSING_HPP
 
 #include <sensor_msgs/Image.h>
-#include <boost/shared_ptr.hpp>
 
-namespace ips {
+namespace ips{
 
 class ImageProcessing{
-public: 
-    virtual ~ImageProcessing() { }
+public:
+    virtual ~ImageProcessing() {}
     bool m_Run();
 
 protected:

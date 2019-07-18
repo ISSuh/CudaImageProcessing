@@ -16,11 +16,11 @@
 // Error Check
 #include <cuda_imageprocessing/ErrorCheck.hpp>
 
-namespace ips{
+namespace ips {
 
-class ImageResize : public ImageProcessing{
+class ImageResize : public ImageProcessing {
 public: 
-    ImageResize(const int dstW, const int dstH){
+    ImageResize(const int dstW, const int dstH) {
         m_dstW = dstW;
         m_dstH = dstH;
 
@@ -203,7 +203,8 @@ protected:
 private:
     NppiSize m_srcSize, m_dstSize;
     NppiRect m_srcROI, m_dstROI;
-}; 
-}
+};
+
+} // namespace ips
 
 #endif
