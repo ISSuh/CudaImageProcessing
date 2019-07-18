@@ -1,6 +1,6 @@
 # CudaImageProcessing
 
-## ROS based image resize & compressed using CUDA(using NPP, nvJPEG)
+## ROS based image resize & compressed using CUDA(NPP, nvJPEG)
 
 
 ### ***Development Enviroments***
@@ -14,7 +14,6 @@
 
 ### ***Support***
 
-> Until now, only supported image resize. 
 > - Image Resize /
 > -- Only Supported [RGB8, RGBA8, RGB16, RGBA16, BGR8, BGRA8, BGR16, BGRA16, MONO8, MONO16]  
 > - Image Compressed /
